@@ -29,7 +29,7 @@ public class ftpClient{
       byte[] buffer = new byte[2000];
       try{
         InputStream is = socket.getInputStream();
-        String path = "/home/mathew/Documents/CS/457/sample1.txt";
+        String path = "/home/mathew/Documents/CS/457/FTP-Client-Server/clientFiles/sample1.txt";
         FileOutputStream fos = new FileOutputStream(path);
         is.read(buffer, 0, buffer.length);
         fos.write(buffer, 0, buffer.length);

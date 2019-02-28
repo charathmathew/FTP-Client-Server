@@ -55,11 +55,11 @@ public class ftpServer{
     }
   }
 
-  public void receiveFile(){
+  public void receiveFile(String filename){
       byte[] buffer = new byte[2000];
       try{
         InputStream is = clientSocket.getInputStream();
-        String path = "/home/mathew/Documents/CS/457/serverFiles/clientFile1.txt";
+        String path = "/home/mathew/Documents/CS/457/FTP-Client-Server/serverFiles/" + filename;
         FileOutputStream fos = new FileOutputStream(path);
         is.read(buffer, 0, buffer.length);
         fos.write(buffer, 0, buffer.length);
@@ -94,20 +94,22 @@ public class ftpServer{
 
   }
 
-  public void retrieve(){
-      sendFile("sample1.txt");
+  public void retrieve(String filename){
+      sendFile(filename);
   }
 
-  public void store(){
-    System.out.println("Store a file to the server");
+  public void store(String filename){
+    receiveFile(filename);
   }
 
   public static void main(String args[]){
     ftpServer server = new ftpServer();
     server.displayMenu();
     server.listFiles();
-    server.sendFile("sample1.txt");
-    server.receiveFile();
+    //server.sendFile("sample1.txt");
+    server.retrieve("sample1.txt");
+    server.store("clientFile1.txt");
+    //server.receiveFile();
   }
 
 }
