@@ -38,10 +38,26 @@ public class ftpClient{
         System.out.println(e);
       }
   }
+  public void sendFile(String filename){
+    String path = FileSystems.getDefault().getPath("").toAbsolutePath() + "/clientFiles/" + filename;
+
+    try{
+      FileInputStream fis = new FileInputStream(path);
+      File sendFile = new File(path);
+      byte[] byteArray = new byte [(int) sendFile.length()];
+      fis.read(byteArray, 0, byteArray.length);
+      OutputStream os = socket.getOutputStream();
+      os.write(byteArray, 0, byteArray.length);
+    }
+    catch(Exception e){
+      System.out.println(e);
+    }
+  }
 
   public static void main(String args[]){
     ftpClient client = new ftpClient(3000);
     client.receiveFile();
+    client.sendFile("clientFile1.txt");
   }
 
 }

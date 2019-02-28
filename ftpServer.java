@@ -55,6 +55,20 @@ public class ftpServer{
     }
   }
 
+  public void receiveFile(){
+      byte[] buffer = new byte[2000];
+      try{
+        InputStream is = clientSocket.getInputStream();
+        String path = "/home/mathew/Documents/CS/457/serverFiles/clientFile1.txt";
+        FileOutputStream fos = new FileOutputStream(path);
+        is.read(buffer, 0, buffer.length);
+        fos.write(buffer, 0, buffer.length);
+      }
+      catch(Exception e){
+        System.out.println(e);
+      }
+  }
+
   public void listFiles(){
 
     //path of the server files directory
@@ -90,26 +104,10 @@ public class ftpServer{
 
   public static void main(String args[]){
     ftpServer server = new ftpServer();
-    //server.displayMenu();
-    int command = 0;
-    Scanner scanner = new Scanner(System.in);
-
-    do {
-      //server.listFiles();
-      //server.sendFile("sample1.txt");
-      server.displayMenu();
-      command = scanner.nextInt();
-      if(command == 1)
-        server.listFiles();
-      if(command == 2)
-        server.retrieve();
-      if(command == 3)
-        server.store();
-
-    } while (command != 4);
-
-
-
+    server.displayMenu();
+    server.listFiles();
+    server.sendFile("sample1.txt");
+    server.receiveFile();
   }
 
 }
