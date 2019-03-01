@@ -9,9 +9,9 @@ public class ftpServer{
   private ServerSocket serverSocket = null;
   private Socket clientSocket = null;
   private final int PORT = 3000;
-  private DataInputStream in = null;
-  private DataOutputStream out = null;
-
+  private BufferedReader inFromClient = null;
+  private DataOutputStream outToClient = null;
+  private Scanner scanner = null;
 
   public ftpServer(){
 
@@ -22,14 +22,10 @@ public class ftpServer{
       clientSocket = serverSocket.accept();
       System.out.println("Connection Established...");
 
-      /*Path path = FileSystems.getDefault().getPath(".");
-      System.out.println("Current Working Directoy: " + path);
-
-      Path aPath = FileSystems.getDefault().getPath("").toAbsolutePath();
-      System.out.println("Absolute Path of CWD: " + aPath);*/
-
-      in = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
-      out = new DataOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
+      inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+      outToClient = new DataOutputStream(clientSocket.getOutputStream());
+      Scanner scanner = new Scanner(clientSocket.getInputStream());
+      new PrintStream(clientSocket.getOutputStream());
 
     }
     catch(Exception e){
@@ -40,7 +36,7 @@ public class ftpServer{
 
   public void sendFile(String filename){
     //String path = "/home/mathew/Documents/CS/457/FTP-Client-Server/sampleText.txt";
-    String path = FileSystems.getDefault().getPath("").toAbsolutePath() + "/serverFiles/" + filename;
+    String path = FileSystems.getDefault().getPath("").toAbsolutePath() + "/server_files/" + filename;
 
     try{
       FileInputStream fis = new FileInputStream(path);
@@ -59,7 +55,7 @@ public class ftpServer{
       byte[] buffer = new byte[2000];
       try{
         InputStream is = clientSocket.getInputStream();
-        String path = "/home/mathew/Documents/CS/457/FTP-Client-Server/serverFiles/" + filename;
+        String path = FileSystems.getDefault().getPath("").toAbsolutePath() + "/server_files/" + filename;
         FileOutputStream fos = new FileOutputStream(path);
         is.read(buffer, 0, buffer.length);
         fos.write(buffer, 0, buffer.length);
@@ -72,16 +68,22 @@ public class ftpServer{
   public void listFiles(){
 
     //path of the server files directory
-    String path =  FileSystems.getDefault().getPath("").toAbsolutePath() + "/serverFiles/";
+    String path =  FileSystems.getDefault().getPath("").toAbsolutePath() + "/server_files/";
     File dir = new File(path);
     //Array of all files in dir
     File[] listOfFiles = dir.listFiles();
-
-    System.out.println("----Server Files----");
-    for(File file : listOfFiles){
-      if (file.isFile()){
-        System.out.println(file.getName());
+    try{
+      //System.out.println("----Server Files----");
+      outToClient.writeInt(listOfFiles.length);
+      for(File file : listOfFiles){
+        if (file.isFile()){
+          outToClient.writeBytes(file.getName()+"\n");
+          System.out.println(file.getName());
+        }
       }
+      outToClient.close();
+    }catch(Exception e){
+      System.out.println(e);
     }
   }
 
@@ -99,17 +101,59 @@ public class ftpServer{
   }
 
   public void store(String filename){
-    receiveFile(filename);
+      receiveFile(filename);
   }
 
   public static void main(String args[]){
     ftpServer server = new ftpServer();
-    server.displayMenu();
-    server.listFiles();
-    //server.sendFile("sample1.txt");
-    server.retrieve("sample1.txt");
-    server.store("clientFile1.txt");
-    //server.receiveFile();
+
+    String command = "";
+    String filename = "";
+    while(!command.toUpperCase().equals("QUIT")){
+      try {
+        command = server.inFromClient.readLine();
+        //System.out.println(command);
+      } catch(Exception e) {
+        System.out.println(e);
+      }
+
+      System.out.println("Client Request: " + command.toUpperCase());
+      if(command.toUpperCase().equals("LIST")){
+        //System.out.println("LIST");
+        server.listFiles();
+      }
+
+      if(command.toUpperCase().equals("RETRIEVE")){
+        try {
+          filename = server.inFromClient.readLine();
+          System.out.println("RETRIEVE " + filename);
+          server.retrieve(filename);
+        } catch(Exception e) {
+          System.out.println(e);
+        }
+      }
+
+      if(command.toUpperCase().equals("STORE")){
+        try {
+          filename = server.inFromClient.readLine();
+          System.out.println("STORE " + filename);
+          server.store(filename);
+        } catch(Exception e) {
+          System.out.println(e);
+        }
+      }
+    }
+
+    if(command.toUpperCase().equals("QUIT")){
+      try{
+        server.clientSocket.close();
+        server.serverSocket.close();
+      }catch(Exception e){
+        System.out.println(e);
+      }
+      System.out.println("Exiting FTP Server...");
+      System.exit(1);
+    }
   }
 
 }
